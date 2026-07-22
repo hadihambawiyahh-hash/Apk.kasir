@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aplikasi Kasir</title>
+    
+    <!-- Google Fonts & Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Library HTML5 QR Code Scanner -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</head>
+<body>
+
+    <!-- SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-logo-container">
+            <div class="logo-white-box">
+                <svg class="logo-m-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M 28,25 C 20,25 20,38 28,38 L 28,68 C 28,78 40,78 40,68 L 40,48 C 40,42 50,42 50,48 L 50,68 C 50,78 60,78 60,68 L 60,48 C 60,42 72,42 72,48 L 72,68 C 72,78 82,78 82,68 L 82,38 C 82,25 72,25 72,38" stroke="#ff001b" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- HEADER UTAMA -->
+    <header id="main-header">
+        <div id="display-nama-toko">WB</div>
+        <div class="header-right-actions">
+            <button class="notification-btn" onclick="bukaNotifikasi()" title="Pemberitahuan">
+                <span class="material-icons-round">notifications_none</span>
+            </button>
+            <button class="notification-btn" onclick="bukaModalSetting()" title="Pengaturan Toko">
+                <span class="material-icons-round">settings</span>
+            </button>
+        </div>
+    </header>
+
+    <main class="content-area">
+
+        <!-- HALAMAN 1: BERANDA -->
+        <section id="page-beranda" class="page active">
+            <div class="main-wallet-card">
+                <div class="wallet-header">
+                    <span>Kas Tunai & Saldo</span>
+                    <span id="display-tanggal">Hari Ini</span>
+                </div>
+                <h1 id="display-saldo">Rp 0</h1>
+                <div class="wallet-divider"></div>
+                <div class="wallet-stats-row">
+                    <div class="wallet-stat-item">
+                        <span class="label">Pemasukan</span>
+                        <span class="value" id="display-pemasukan">Rp 0</span>
+                    </div>
+                    <div class="wallet-stat-item">
+                        <span class="label">Pengeluaran</span>
+                        <span class="value" id="display-pengeluaran">Rp 0</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions-grid">
+                <div class="action-btn-item" onclick="gantiTab('penjualan')">
+                    <div class="icon-circle bg-red-light">
+                        <span class="material-icons-round text-primary">point_of_sale</span>
+                    </div>
+                    <span>Kasir</span>
+                </div>
+                <div class="action-btn-item" onclick="gantiTab('produk')">
+                    <div class="icon-circle bg-blue-light">
+                        <span class="material-icons-round" style="color:var(--blue)">inventory_2</span>
+                    </div>
+                    <span>Produk</span>
+                </div>
+                <div class="action-btn-item" onclick="gantiTab('keuangan')">
+                    <div class="icon-circle bg-green-light">
+                        <span class="material-icons-round" style="color:var(--green)">account_balance_wallet</span>
+                    </div>
+                    <span>Keuangan</span>
+                </div>
+                <div class="action-btn-item" onclick="gantiTab('laporan')">
+                    <div class="icon-circle bg-purple-light">
+                        <span class="material-icons-round" style="color:var(--purple)">bar_chart</span>
+                    </div>
+                    <span>Laporan</span>
+                </div>
+            </div>
+
+            <div class="progress-card">
+                <div class="progress-info">
+                    <h4>Target Penjualan Bulan Ini</h4>
+                    <span id="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-bar"></div>
+                </div>
+                <div class="progress-sub" id="progress-text">Tercapai dari target Rp 5.000.000</div>
+            </div>
+
+            <div class="card info-summary-card">
+                <h4>Ringkasan Toko</h4>
+                <div class="summary-stats-grid">
+                    <div class="summary-box">
+                        <span class="sub-label">TOTAL PRODUK</span>
+                        <div class="main-val" id="summary-total-produk">0</div>
+                    </div>
+                    <div class="summary-box">
+                        <span class="sub-label">STOK MENIPIS</span>
+                        <div class="main-val text-alert" id="summary-stok-kritis">0</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN 2: PENJUALAN / KASIR -->
+        <section id="page-penjualan" class="page">
+            <div class="card cart-card">
+                <div class="cart-header">
+                    <h4>Keranjang Belanja</h4>
+                    <span class="badge" id="cart-item-count">0 Item</span>
+                </div>
+                <div class="list-container" id="keranjang-list">
+                    <div class="empty-state">
+                        <span class="material-icons-round">remove_shopping_cart</span>
+                        Keranjang masih kosong. Silakan scan produk.
+                    </div>
+                </div>
+                <div class="total-section">
+                    <div>
+                        <span class="sub-label">TOTAL TAGIHAN</span>
+                        <div class="total-price" id="cart-total-price">Rp 0</div>
+                    </div>
+                    <button class="btn btn-primary" onclick="prosesCheckout()">
+                        <span class="material-icons-round">payment</span> Bayar
+                    </button>
+                </div>
+            </div>
+            <button class="btn btn-secondary btn-block" onclick="bukaModalCariManual()">
+                <span class="material-icons-round">search</span> Cari Produk Manual
+            </button>
+        </section>
+
+        <!-- HALAMAN 3: PRODUK -->
+        <section id="page-produk" class="page">
+            <div class="card-header-action" style="margin-bottom:16px;">
+                <h3>Daftar Produk</h3>
+                <button class="btn btn-primary btn-sm" onclick="bukaModalTambahProduk()">
+                    <span class="material-icons-round">add</span> Tambah
+                </button>
+            </div>
+            <div class="form-group">
+                <input type="text" class="form-control" id="search-produk-input" placeholder="Cari nama produk atau barcode..." oninput="filterProdukList()">
+            </div>
+            <div class="product-grid-container" id="produk-grid"></div>
+        </section>
+
+        <!-- HALAMAN 4: KEUANGAN -->
+        <section id="page-keuangan" class="page">
+            <div class="card">
+                <h3>Catat Pemasukan / Pengeluaran</h3>
+                <form id="form-keuangan" onsubmit="simpanKeuangan(event)" style="margin-top:14px;">
+                    <div class="form-group">
+                        <label>Tipe Transaksi</label>
+                        <select class="form-control" id="keuangan-tipe">
+                            <option value="pemasukan">Pemasukan</option>
+                            <option value="pengeluaran">Pengeluaran</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Jumlah Nominal (Rp)</label>
+                        <input type="number" class="form-control" id="keuangan-nominal" placeholder="Contoh: 50000" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Keterangan</label>
+                        <input type="text" class="form-control" id="keuangan-keterangan" placeholder="Contoh: Beli plastik / Hasil penjualan" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Simpan Transaksi</button>
+                </form>
+            </div>
+        </section>
+
+<!-- HALAMAN 5: LAPORAN -->
+<section id="page-laporan" class="page">
+    <div class="card info-summary-card" style="margin-bottom:16px;">
+        <h4>Penjualan Hari Ini</h4>
+        <div class="summary-stats-grid">
+            <div class="summary-box">
+                <span class="sub-label">BARANG TERJUAL</span>
+                <div class="main-val" id="laporan-barang-terjual">0 Pcs</div>
+            </div>
+            <div class="summary-box">
+                <span class="sub-label">TOTAL OMSET</span>
+                <div class="main-val" style="color:var(--green)" id="laporan-omset-hari-ini">Rp 0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header-action" style="margin-bottom: 12px;">
+            <h3>Riwayat Transaksi</h3>
+            <!-- Filter Riwayat -->
+            <select class="form-control" id="filter-periode-laporan" onchange="renderRiwayatTransaksi()" style="width: auto; height: 38px; font-size: 12px; padding: 0 8px;">
+                <option value="semua">Semua Histori</option>
+                <option value="hari-ini" selected>Hari Ini</option>
+                <option value="bulan-ini">Bulan Ini</option>
+            </select>
+        </div>
+        
+        <div class="list-container" id="riwayat-transaksi-list">
+            <div class="empty-state">Belum ada riwayat transaksi.</div>
+        </div>
+    </div>
+</section>
+    </main>
+
+    <!-- TAMPILAN SCANNER -->
+    <div id="scanner-container-wrapper" class="scan-fullscreen-mode hidden">
+        <div class="gopay-scanner-container">
+            <div id="interactive-reader"></div>
+            <div class="scanner-overlay">
+                <div class="scanner-top-info">
+                    <div class="scanner-pill">
+                        <span class="material-icons-round" style="font-size:14px; color:#00e676;">qr_code_scanner</span>
+                        <span id="scanner-mode-title">Scanner Kasir</span>
+                    </div>
+                    <div class="scan-title">Arahkan Kamera ke Barcode</div>
+                    <div class="scan-subtitle">Posisikan kode di dalam kotak pemindai</div>
+                </div>
+                <div class="scanner-frame-wrapper">
+                    <div class="scanner-frame-target">
+                        <div class="corner top-left"></div>
+                        <div class="corner top-right"></div>
+                        <div class="corner bottom-left"></div>
+                        <div class="corner bottom-right"></div>
+                        <div class="laser-line"></div>
+                    </div>
+                </div>
+                <div class="scanner-bottom-info">
+                    <div class="scanner-tip">
+                        <span class="material-icons-round" style="font-size:14px;">lightbulb</span> Pastikan pencahayaan cukup
+                    </div>
+                    <button class="scanner-close-btn" onclick="tutupKamera()">
+                        <span class="material-icons-round">close</span> Tutup Scanner
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAVIGATION -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="gantiTab('beranda')" id="nav-beranda">
+            <span class="material-icons-round">home</span>
+            <span>Beranda</span>
+        </div>
+        <div class="nav-item" onclick="gantiTab('penjualan')" id="nav-penjualan">
+            <span class="material-icons-round">point_of_sale</span>
+            <span>Kasir</span>
+        </div>
+        <div class="nav-item nav-scan" onclick="bukaKamera('kasir')">
+            <div class="scan-icon-container">
+                <span class="material-icons-round">qr_code_scanner</span>
+            </div>
+        </div>
+        <div class="nav-item" onclick="gantiTab('produk')" id="nav-produk">
+            <span class="material-icons-round">inventory_2</span>
+            <span>Produk</span>
+        </div>
+        <div class="nav-item" onclick="gantiTab('laporan')" id="nav-laporan">
+            <span class="material-icons-round">bar_chart</span>
+            <span>Laporan</span>
+        </div>
+    </nav>
+
+    <!-- TOAST & MODAL -->
+    <div id="toast" class="toast-message">Berhasil</div>
+
+    <!-- MODAL EDIT/TAMBAH PRODUK -->
+    <div class="modal" id="modal-tambah-produk">
+        <div class="modal-content">
+            <div class="card-header-action" style="margin-bottom:14px;">
+                <h3 id="modal-produk-title">Tambah Produk Baru</h3>
+                <button class="notification-btn" onclick="tutupModalTambahProduk()"><span class="material-icons-round">close</span></button>
+            </div>
+            <form id="form-produk" onsubmit="simpanProduk(event)">
+                <input type="hidden" id="edit-product-id">
+                <div class="form-group">
+                    <label>Foto Produk</label>
+                    <div class="image-preview-box" id="image-preview-container" onclick="document.getElementById('input-foto-file').click()">
+                        <span class="material-icons-round" id="preview-placeholder-text">add_a_photo</span>
+                    </div>
+                    <input type="file" id="input-foto-file" accept="image/*" class="hidden" onchange="previewImage(event)">
+                </div>
+                <div class="form-group">
+                    <label>Nama Produk</label>
+                    <input type="text" class="form-control" id="input-nama-produk" required>
+                </div>
+                <div class="form-group">
+                    <label>Barcode / Kode SKU</label>
+                    <div style="display:flex; gap:8px;">
+                        <input type="text" class="form-control" id="input-barcode" required style="flex:1;">
+                        <button type="button" class="btn btn-secondary" onclick="bukaKamera('produk')" title="Scan Barcode">
+                            <span class="material-icons-round">qr_code_scanner</span> Scan
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Harga Jual (Rp)</label>
+                    <input type="number" class="form-control" id="input-harga" required>
+                </div>
+                <div class="form-group">
+                    <label>Stok Barang</label>
+                    <input type="number" class="form-control" id="input-stok" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Simpan Produk</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL NOTIFIKASI -->
+    <div class="modal" id="modal-notifikasi">
+        <div class="modal-content">
+            <div class="card-header-action" style="margin-bottom:14px;">
+                <h3>Pemberitahuan Toko</h3>
+                <button class="notification-btn" onclick="tutupModalNotifikasi()"><span class="material-icons-round">close</span></button>
+            </div>
+            <div class="list-container" id="notifikasi-list" style="max-height: 300px;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL PENGATURAN -->
+    <div class="modal" id="modal-setting">
+        <div class="modal-content">
+            <div class="card-header-action" style="margin-bottom:14px;">
+                <h3>Pengaturan Toko</h3>
+                <button class="notification-btn" onclick="tutupModalSetting()"><span class="material-icons-round">close</span></button>
+            </div>
+            <form id="form-setting" onsubmit="simpanSetting(event)">
+                <div class="form-group">
+                    <label>Nama Toko</label>
+                    <input type="text" class="form-control" id="setting-nama-toko" required>
+                </div>
+                <div class="form-group">
+                    <label>Target Penjualan Bulanan (Rp)</label>
+                    <input type="number" class="form-control" id="setting-target-bulanan" required>
+                </div>
+                <div class="setting-item-toggle">
+                    <div>
+                        <label style="margin:0; font-weight:700;">Mode Malam</label>
+                        <p style="font-size:11px; color:var(--text2); margin:0;">Ubah tampilan menjadi gelap</p>
+                    </div>
+                    <input type="checkbox" id="setting-mode-malam" onchange="toggleModeMalam(this.checked)">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top:16px;">Simpan Pengaturan</button>
+            </form>
+            <hr style="margin:16px 0; border:none; border-top:1px solid var(--border);">
+            <button class="btn btn-block" style="background:#fee2e2; color:#dc2626;" onclick="resetSemuaData()">
+                <span class="material-icons-round">restart_alt</span> Reset Semua Data Aplikasi
+            </button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
